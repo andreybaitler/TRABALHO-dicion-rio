@@ -1,1 +1,14 @@
+🔹 Explicação
 O código começa importando as bibliotecas necessárias para entrada e saída de dados, alocação dinâmica de memória e manipulação de strings. Em seguida, é definido o tamanho da tabela hash como 31 posições. Depois são criadas duas estruturas. A struct No armazena uma palavra, sua definição e um ponteiro para o próximo elemento da lista encadeada. Já a struct TabelaHash armazena o vetor da tabela, seu tamanho, a quantidade de elementos cadastrados e o número de colisões registradas.
+
+🔹 Explicação
+A função copiarTexto é utilizada para copiar uma string para uma área de memória criada dinamicamente. Já a função hash é responsável por calcular em qual posição da tabela uma palavra será armazenada. Ela utiliza o algoritmo djb2, que transforma os caracteres da palavra em um número. Depois, esse valor é dividido pelo tamanho da tabela utilizando o operador módulo para obter um índice válido. A função criarTabela cria a tabela hash e inicializa todos os seus campos.
+
+🔹 Explicação
+A função criarNo cria um novo nó contendo a palavra e sua definição. Em seguida, a função inserir calcula o índice da palavra usando a função hash. Antes de inserir, ela verifica se a palavra já existe na tabela. Se existir, a definição é atualizada. Caso contrário, um novo nó é criado e inserido no início da lista encadeada daquela posição. Se já existir algum elemento nessa posição, é registrada uma colisão. Além disso, a quantidade total de elementos da tabela é atualizada.
+
+🔹 Explicação
+A função buscar procura uma palavra dentro da tabela hash. Ela calcula o índice da palavra e percorre a lista encadeada daquela posição até encontrar o elemento desejado. Caso encontre, retorna suas informações. Já a função removerPalavra localiza a palavra na lista encadeada, ajusta os ponteiros para manter a lista organizada e remove o elemento da memória utilizando a função free. Também é atualizada a quantidade de elementos armazenados na tabela.
+
+🔹 Explicação
+A função mostrarTabela exibe todas as posições da tabela hash e mostra quais palavras estão armazenadas em cada uma delas. A função maiorLista percorre toda a tabela para descobrir qual lista encadeada possui mais elementos. Já a função mostrarEstatisticas apresenta informações importantes, como quantidade de elementos, quantidade de colisões, fator de carga e tamanho da maior lista encadeada. Por fim, a função liberarTabela libera toda a memória utilizada pelo programa. No main, é apresentado um menu interativo que permite ao usuário inserir, buscar, remover palavras, visualizar a tabela hash e consultar as estatísticas do sistema.
