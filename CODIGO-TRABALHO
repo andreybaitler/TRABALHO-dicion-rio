@@ -1,0 +1,346 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define TAM 31
+
+typedef struct No{
+    char *palavra;
+    char *definicao;
+    struct No *prox;
+}No;
+
+typedef struct{
+    No **lista;
+    int tamanho;
+    int qtd;
+    int colisoes;
+}TabelaHash;
+
+char *copiarTexto(const char *txt){
+
+    char *novo = malloc(strlen(txt)+1);
+
+    if(novo)
+        strcpy(novo,txt);
+
+    return novo;
+}
+
+unsigned int hash(char *palavra,int tamanho){
+
+    unsigned long valor = 5381;
+    int c;
+
+    while((c=*palavra++))
+        valor=((valor<<5)+valor)+c;
+
+    return valor % tamanho;
+}
+
+TabelaHash *criarTabela(int tamanho){
+
+    TabelaHash *t = malloc(sizeof(TabelaHash));
+
+    if(t==NULL)
+        return NULL;
+
+    t->lista = calloc(tamanho,sizeof(No*));
+
+    if(t->lista==NULL){
+        free(t);
+        return NULL;
+    }
+
+    t->tamanho = tamanho;
+    t->qtd = 0;
+    t->colisoes = 0;
+
+    return t;
+}
+
+No *criarNo(char *palavra,char *definicao){
+
+    No *novo = malloc(sizeof(No));
+
+    if(novo==NULL)
+        return NULL;
+
+    novo->palavra = copiarTexto(palavra);
+    novo->definicao = copiarTexto(definicao);
+    novo->prox = NULL;
+
+    return novo;
+}
+
+void inserir(TabelaHash *t,char *palavra,char *definicao){
+
+    int indice = hash(palavra,t->tamanho);
+
+    No *aux = t->lista[indice];
+
+    while(aux){
+
+        if(strcmp(aux->palavra,palavra)==0){
+
+            free(aux->definicao);
+            aux->definicao = copiarTexto(definicao);
+
+            printf("\nDefinicao atualizada.\n");
+            return;
+        }
+
+        aux = aux->prox;
+    }
+
+    No *novo = criarNo(palavra,definicao);
+
+    if(novo==NULL){
+        printf("Erro de memoria.\n");
+        return;
+    }
+
+    if(t->lista[indice] != NULL)
+        t->colisoes++;
+
+    novo->prox = t->lista[indice];
+    t->lista[indice] = novo;
+
+    t->qtd++;
+
+    printf("\nPalavra inserida com sucesso.\n");
+}
+
+No *buscar(TabelaHash *t,char *palavra){
+
+    int indice = hash(palavra,t->tamanho);
+
+    No *aux = t->lista[indice];
+
+    while(aux){
+
+        if(strcmp(aux->palavra,palavra)==0)
+            return aux;
+
+        aux = aux->prox;
+    }
+
+    return NULL;
+}
+
+void removerPalavra(TabelaHash *t,char *palavra){
+
+    int indice = hash(palavra,t->tamanho);
+
+    No *aux = t->lista[indice];
+    No *ant = NULL;
+
+    while(aux){
+
+        if(strcmp(aux->palavra,palavra)==0){
+
+            if(ant==NULL)
+                t->lista[indice] = aux->prox;
+            else
+                ant->prox = aux->prox;
+
+            free(aux->palavra);
+            free(aux->definicao);
+            free(aux);
+
+            t->qtd--;
+
+            printf("\nPalavra removida.\n");
+            return;
+        }
+
+        ant = aux;
+        aux = aux->prox;
+    }
+
+    printf("\nPalavra nao encontrada.\n");
+}
+
+void mostrarTabela(TabelaHash *t){
+
+    printf("\nTABELA HASH\n");
+
+    for(int i=0;i<t->tamanho;i++){
+
+        printf("[%d] -> ",i);
+
+        No *aux = t->lista[i];
+
+        if(aux==NULL){
+            printf("NULL");
+        }
+
+        while(aux){
+
+            printf("%s",aux->palavra);
+
+            if(aux->prox)
+                printf(" -> ");
+
+            aux = aux->prox;
+        }
+
+        printf("\n");
+    }
+}
+
+int maiorLista(TabelaHash *t){
+
+    int maior = 0;
+
+    for(int i=0;i<t->tamanho;i++){
+
+        int cont = 0;
+
+        No *aux = t->lista[i];
+
+        while(aux){
+
+            cont++;
+            aux = aux->prox;
+        }
+
+        if(cont > maior)
+            maior = cont;
+    }
+
+    return maior;
+}
+
+void mostrarEstatisticas(TabelaHash *t){
+
+    printf("\nESTATISTICA\n");
+    printf("Quantidade de elementos: %d\n",t->qtd);
+    printf("Quantidade de colisoes: %d\n",t->colisoes);
+    printf("Fator de carga: %.2f\n",(float)t->qtd/t->tamanho);
+    printf("Maior lista encadeada: %d\n",maiorLista(t));
+}
+
+void liberarTabela(TabelaHash *t){
+
+    for(int i=0;i<t->tamanho;i++){
+
+        No *aux = t->lista[i];
+
+        while(aux){
+
+            No *temp = aux;
+
+            aux = aux->prox;
+
+            free(temp->palavra);
+            free(temp->definicao);
+            free(temp);
+        }
+    }
+
+    free(t->lista);
+    free(t);
+}
+
+void lerTexto(char *texto,int tam){
+
+    fgets(texto,tam,stdin);
+    texto[strcspn(texto,"\n")] = '\0';
+}
+
+int main(){
+
+    TabelaHash *tabela = criarTabela(TAM);
+
+    char palavra[100];
+    char definicao[500];
+
+    int op;
+
+    do{
+
+        printf("\n");
+        printf("DICIONARIO \n");
+        printf("1-Inserir palavra\n");
+        printf("2-Buscar palavra\n");
+        printf("3-Remover palavra\n");
+        printf("4-Mostrar tabela\n");
+        printf("5-Estatisticas\n");
+        printf("0-Sair\n");
+        printf("Opcao: ");
+        scanf("%d",&op);
+        getchar();
+
+        switch(op){
+
+            case 1:
+
+                printf("Palavra: ");
+                lerTexto(palavra,sizeof(palavra));
+
+                printf("Definicao: ");
+                lerTexto(definicao,sizeof(definicao));
+
+                inserir(tabela,palavra,definicao);
+
+                break;
+
+            case 2:{
+
+                printf("Palavra: ");
+                lerTexto(palavra,sizeof(palavra));
+
+                No *resultado = buscar(tabela,palavra);
+
+                if(resultado){
+
+                    printf("\nPalavra: %s\n",resultado->palavra);
+                    printf("Definicao: %s\n",resultado->definicao);
+
+                }else{
+
+                    printf("\nPalavra nao encontrada.\n");
+                }
+
+                break;
+            }
+
+            case 3:
+
+                printf("Palavra: ");
+                lerTexto(palavra,sizeof(palavra));
+
+                removerPalavra(tabela,palavra);
+
+                break;
+
+            case 4:
+
+                mostrarTabela(tabela);
+
+                break;
+
+            case 5:
+
+                mostrarEstatisticas(tabela);
+
+              break;
+
+            case 0:
+
+                printf("\nEncerrando programa\n");
+
+                break;
+
+            default:
+
+                printf("\nOpcao invalida.\n");
+        }
+
+    }while(op!=0);
+
+    liberarTabela(tabela);
+
+    return 0;
+}
